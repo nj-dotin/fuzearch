@@ -1,5 +1,5 @@
 import { runAgentWithPrompt } from '../ai/client';
-import { LegalResult } from '../../types/analysis';
+import { LegalResult, ApiConfig } from '../../types/analysis';
 
 const LEGAL_SYSTEM_PROMPT = `You are the Legal Agent, a specialist in identifying high-level compliance, regulatory, intellectual property, ethical, and privacy (e.g. GDPR, CCPA) concerns.
 
@@ -14,6 +14,6 @@ Analyze the user's idea and return your evaluation in JSON format matching this 
 
 CRITICAL: Return ONLY raw JSON. Do not write markdown blocks or any text outside of the JSON structure. Ensure all keys are double-quoted.`;
 
-export async function analyzeLegal(idea: string): Promise<LegalResult> {
-  return runAgentWithPrompt<LegalResult>(LEGAL_SYSTEM_PROMPT, idea);
+export async function analyzeLegal(idea: string, config?: ApiConfig): Promise<LegalResult> {
+  return runAgentWithPrompt<LegalResult>(LEGAL_SYSTEM_PROMPT, idea, config);
 }

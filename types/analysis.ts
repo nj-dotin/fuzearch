@@ -99,3 +99,34 @@ export interface ProgressEvent {
   result?: any;
   error?: string;
 }
+
+export type AiProvider = 'gemini' | 'openrouter' | 'hybrid' | 'custom' | 'demo';
+
+export interface ApiConfig {
+  provider: AiProvider;
+  apiKey?: string;
+  model?: string;
+  baseUrl?: string;
+  // Dual-key hybrid fields
+  geminiApiKey?: string;
+  geminiModel?: string;
+  openrouterApiKey?: string;
+  openrouterModel?: string;
+}
+
+export interface AiConnectionTestResult {
+  success: boolean;
+  latencyMs?: number;
+  message: string;
+  model?: string;
+  provider?: string;
+}
+
+export interface AiEngineStatus {
+  active: boolean;
+  provider?: AiProvider;
+  model?: string;
+  source: 'env' | 'client' | 'fallback';
+  message?: string;
+}
+

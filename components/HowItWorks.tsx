@@ -2,54 +2,61 @@
 
 export default function HowItWorks() {
   const steps = [
-    { num: '01', title: 'User Idea', desc: 'Raw text description' },
-    { num: '02', title: 'Input Processing', desc: 'Context validation' },
-    { num: '03', title: '7 Specialized Agents', desc: 'Concurrent analysis' },
-    { num: '04', title: 'Parallel Analysis', desc: 'Asynchronous streaming' },
-    { num: '05', title: 'Score Aggregation', desc: 'Mathematical averaging' },
-    { num: '06', title: 'Overall Score', desc: 'Score & potential level' },
-    { num: '07', title: 'Detailed Report', desc: 'Expandable breakdowns' }
+    { num: '01', title: 'Idea Submission', desc: 'Concept statement & context' },
+    { num: '02', title: 'Prompt Dispatch', desc: 'Normalized schema validation' },
+    { num: '03', title: '7 Parallel Agents', desc: 'Domain-specific evaluation' },
+    { num: '04', title: 'Streamed Output', desc: 'Low-latency SSE delivery' },
+    { num: '05', title: 'Score Aggregation', desc: 'Deterministic mathematical calculation' },
+    { num: '06', title: 'Verdict Grading', desc: 'Categorized feasibility potential' },
+    { num: '07', title: 'Strategic Roadmap', desc: 'Actionable feature milestones' },
   ];
 
   return (
-    <section className="bg-white border border-[#e5e5e5] rounded-lg p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-[#171717] mb-4">Multi-Agent Architecture Flow</h2>
-      
-      {/* Visual Diagram */}
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
+    <section className="rounded-2xl border border-stone-200/80 bg-white p-6 shadow-2xs">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-sm font-bold tracking-tight text-stone-900">
+            Multi-Agent Architecture Pipeline
+          </h2>
+          <p className="text-xs text-stone-500 mt-0.5">
+            Concurrent asynchronous dispatch across 7 specialized evaluation domains.
+          </p>
+        </div>
+        <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-stone-100 text-stone-600 border border-stone-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          Zero-Roundtrip Parallel
+        </span>
+      </div>
+
+      {/* Visual Pipeline Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3 pt-2">
         {steps.map((step, index) => (
-          <div key={step.num} className="relative flex flex-col items-center">
-            {/* Step Card */}
-            <div className="w-full flex flex-col items-center p-3 rounded border border-[#e5e5e5] bg-[#fafafa] text-center hover:border-[#cbd5e1] transition-all min-h-[96px] justify-center">
-              <span className="text-[10px] font-mono font-bold text-[#3b82f6] mb-1">{step.num}</span>
-              <h3 className="text-xs font-semibold text-[#171717] leading-tight mb-0.5">{step.title}</h3>
-              <p className="text-[10px] text-[#6b7280] leading-normal">{step.desc}</p>
+          <div key={step.num} className="relative flex flex-col">
+            <div className="h-full flex flex-col justify-between p-3.5 rounded-xl border border-stone-200/80 bg-stone-50/50 hover:bg-stone-50 hover:border-stone-300 transition-all">
+              <div>
+                <span className="text-[10px] font-mono font-bold text-stone-400 block mb-1">
+                  {step.num}
+                </span>
+                <h3 className="text-xs font-semibold text-stone-900 leading-snug">
+                  {step.title}
+                </h3>
+              </div>
+              <p className="text-[11px] text-stone-500 mt-2 leading-relaxed font-normal">
+                {step.desc}
+              </p>
             </div>
 
-            {/* Connection Arrow (Except last) */}
+            {/* Desktop Chevron */}
             {index < steps.length - 1 && (
-              <>
-                {/* Desktop Arrow */}
-                <div className="hidden md:block absolute top-1/2 -right-3 -translate-y-1/2 z-10">
-                  <svg className="w-2.5 h-2.5 text-[#9ca3af]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-                {/* Mobile Arrow */}
-                <div className="block md:hidden my-1">
-                  <svg className="w-3.5 h-3.5 text-[#9ca3af]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </>
+              <div className="hidden md:flex absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-stone-300">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
             )}
           </div>
         ))}
       </div>
-      
-      <p className="text-xs text-[#6b7280] mt-4 leading-relaxed text-center italic border-t border-[#e5e5e5] pt-3">
-        Note: The 7 agents (Feasibility, Market, Technical, Innovation, Risk, Legal, and Suggestions) run in <b>parallel</b> to eliminate sequential roundtrip delays.
-      </p>
     </section>
   );
 }

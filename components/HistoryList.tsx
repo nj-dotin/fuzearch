@@ -14,39 +14,39 @@ export default function HistoryList({ reports, onClearHistory }: HistoryListProp
   const getVerdictStyle = (verdict: string) => {
     switch (verdict) {
       case 'High Potential':
-        return 'bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0]';
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
       case 'Moderate Potential':
-        return 'bg-[#fff7ed] text-[#9a3412] border-[#fed7aa]';
+        return 'bg-amber-50 text-amber-800 border-amber-200';
       case 'Needs Improvement':
       default:
-        return 'bg-[#fff5f5] text-[#9b1c1c] border-[#fecaca]';
+        return 'bg-rose-50 text-rose-800 border-rose-200';
     }
   };
 
   if (reports.length === 0) {
     return (
-      <div className="text-center p-8 bg-white border border-[#e5e5e5] rounded-lg shadow-sm">
-        <p className="text-sm text-[#6b7280]">No analysis history found.</p>
-        <p className="text-xs text-[#a3a3a3] mt-1">Submit an idea above to generate your first analysis report.</p>
+      <div className="text-center p-8 sm:p-12 bg-white border border-stone-200/80 rounded-2xl shadow-2xs">
+        <p className="text-xs sm:text-sm font-semibold text-stone-700">No evaluations recorded yet.</p>
+        <p className="text-xs text-stone-400 mt-1">Submit your first idea above to generate an evaluation report.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-[#e5e5e5] rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-white border border-stone-200/80 rounded-2xl shadow-2xs overflow-hidden">
       {/* Title Header */}
-      <div className="px-5 py-4 border-b border-[#e5e5e5] flex items-center justify-between bg-[#fafafa]">
+      <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
         <div>
-          <h2 className="text-sm font-semibold text-[#171717]">Previous Analyses</h2>
-          <p className="text-xs text-[#6b7280]">Locally saved reports ({reports.length})</p>
+          <h2 className="text-xs sm:text-sm font-bold text-stone-900 tracking-tight">Saved Evaluation Reports</h2>
+          <p className="text-[11px] text-stone-500">{reports.length} evaluation{reports.length === 1 ? '' : 's'} stored in local browser memory</p>
         </div>
         <button
           onClick={() => {
-            if (confirm('Are you sure you want to clear your local analysis history? This action cannot be undone.')) {
+            if (confirm('Are you sure you want to clear your local evaluation history?')) {
               onClearHistory();
             }
           }}
-          className="text-xs font-semibold text-red-600 hover:text-red-700 border border-transparent hover:border-red-200 hover:bg-red-50 rounded px-2.5 py-1 transition-all"
+          className="text-xs font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg px-2.5 py-1 transition-all"
         >
           Clear History
         </button>
@@ -54,46 +54,37 @@ export default function HistoryList({ reports, onClearHistory }: HistoryListProp
 
       {/* History Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-[#171717]">
-          <thead className="bg-[#f9fafb] text-xs font-bold uppercase text-[#737373] border-b border-[#e5e5e5] font-mono">
+        <table className="w-full text-left text-xs sm:text-sm text-stone-800">
+          <thead className="bg-stone-50/80 text-[10px] font-bold uppercase text-stone-400 border-b border-stone-100 font-mono tracking-wider">
             <tr>
-              <th className="px-5 py-3">Date / Time</th>
-              <th className="px-5 py-3">Submitted Idea</th>
+              <th className="px-5 py-3">Timestamp</th>
+              <th className="px-5 py-3">Evaluated Idea</th>
               <th className="px-5 py-3 text-center">Score</th>
               <th className="px-5 py-3 text-center">Verdict</th>
               <th className="px-5 py-3 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#e5e5e5]">
+          <tbody className="divide-y divide-stone-100">
             {reports.map((report) => (
-              <tr key={report.id} className="hover:bg-[#fafafa] transition-colors">
-                {/* Date */}
-                <td className="px-5 py-4 whitespace-nowrap text-xs text-[#737373] font-mono">
+              <tr key={report.id} className="hover:bg-stone-50/50 transition-colors">
+                <td className="px-5 py-4 whitespace-nowrap text-[11px] text-stone-400 font-mono">
                   {formatDate(report.timestamp)}
                 </td>
-
-                {/* Idea snippet */}
-                <td className="px-5 py-4 font-normal text-[#171717] max-w-[200px] sm:max-w-xs truncate">
+                <td className="px-5 py-4 font-normal text-stone-900 max-w-[200px] sm:max-w-xs truncate">
                   {report.idea}
                 </td>
-
-                {/* Score */}
-                <td className="px-5 py-4 text-center font-bold font-mono text-sm">
+                <td className="px-5 py-4 text-center font-bold font-mono text-xs sm:text-sm text-stone-900">
                   {report.overallScore}
                 </td>
-
-                {/* Verdict Badge */}
                 <td className="px-5 py-4 text-center whitespace-nowrap">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${getVerdictStyle(report.verdict)}`}>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] sm:text-xs font-semibold border ${getVerdictStyle(report.verdict)}`}>
                     {report.verdict}
                   </span>
                 </td>
-
-                {/* Action Link */}
                 <td className="px-5 py-4 text-right whitespace-nowrap text-xs">
                   <Link
                     href={`/results/${report.id}`}
-                    className="font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                    className="font-semibold text-stone-900 hover:text-stone-600 hover:underline transition-colors"
                   >
                     View Report &rarr;
                   </Link>

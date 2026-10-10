@@ -1,5 +1,5 @@
 import { runAgentWithPrompt } from '../ai/client';
-import { TechnicalResult } from '../../types/analysis';
+import { TechnicalResult, ApiConfig } from '../../types/analysis';
 
 const TECHNICAL_SYSTEM_PROMPT = `You are the Technical Agent, an expert in software architecture, system engineering, and technology stacks.
 
@@ -15,6 +15,6 @@ Analyze the user's idea and return your evaluation in JSON format matching this 
 
 CRITICAL: Return ONLY raw JSON. Do not write markdown blocks or any text outside of the JSON structure. Ensure all keys are double-quoted.`;
 
-export async function analyzeTechnical(idea: string): Promise<TechnicalResult> {
-  return runAgentWithPrompt<TechnicalResult>(TECHNICAL_SYSTEM_PROMPT, idea);
+export async function analyzeTechnical(idea: string, config?: ApiConfig): Promise<TechnicalResult> {
+  return runAgentWithPrompt<TechnicalResult>(TECHNICAL_SYSTEM_PROMPT, idea, config);
 }

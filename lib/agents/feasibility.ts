@@ -1,5 +1,5 @@
 import { runAgentWithPrompt } from '../ai/client';
-import { FeasibilityResult } from '../../types/analysis';
+import { FeasibilityResult, ApiConfig } from '../../types/analysis';
 
 const FEASIBILITY_SYSTEM_PROMPT = `You are the Feasibility Agent, a specialist in determining whether business and technical ideas are practical, achievable, and operationally realistic.
 
@@ -15,6 +15,6 @@ Analyze the user's idea and return your evaluation in JSON format matching this 
 
 CRITICAL: Return ONLY raw JSON. Do not write markdown blocks or any text outside of the JSON structure. Ensure all keys are double-quoted.`;
 
-export async function analyzeFeasibility(idea: string): Promise<FeasibilityResult> {
-  return runAgentWithPrompt<FeasibilityResult>(FEASIBILITY_SYSTEM_PROMPT, idea);
+export async function analyzeFeasibility(idea: string, config?: ApiConfig): Promise<FeasibilityResult> {
+  return runAgentWithPrompt<FeasibilityResult>(FEASIBILITY_SYSTEM_PROMPT, idea, config);
 }

@@ -1,5 +1,5 @@
 import { runAgentWithPrompt } from '../ai/client';
-import { InnovationResult } from '../../types/analysis';
+import { InnovationResult, ApiConfig } from '../../types/analysis';
 
 const INNOVATION_SYSTEM_PROMPT = `You are the Innovation Agent, a specialist in evaluating product novelty, market differentiation, uniqueness, and transformative potential.
 
@@ -15,6 +15,6 @@ Analyze the user's idea and return your evaluation in JSON format matching this 
 
 CRITICAL: Return ONLY raw JSON. Do not write markdown blocks or any text outside of the JSON structure. Ensure all keys are double-quoted.`;
 
-export async function analyzeInnovation(idea: string): Promise<InnovationResult> {
-  return runAgentWithPrompt<InnovationResult>(INNOVATION_SYSTEM_PROMPT, idea);
+export async function analyzeInnovation(idea: string, config?: ApiConfig): Promise<InnovationResult> {
+  return runAgentWithPrompt<InnovationResult>(INNOVATION_SYSTEM_PROMPT, idea, config);
 }

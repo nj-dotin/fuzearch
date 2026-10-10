@@ -1,5 +1,5 @@
 import { runAgentWithPrompt } from '../ai/client';
-import { MarketResult } from '../../types/analysis';
+import { MarketResult, ApiConfig } from '../../types/analysis';
 
 const MARKET_SYSTEM_PROMPT = `You are the Market Agent, a specialist in evaluating market demand, competition, target audiences, and commercial viability.
 
@@ -16,6 +16,6 @@ Analyze the user's idea based on your available knowledge base (do not claim to 
 
 CRITICAL: Return ONLY raw JSON. Do not write markdown blocks or any text outside of the JSON structure. Ensure all keys are double-quoted.`;
 
-export async function analyzeMarket(idea: string): Promise<MarketResult> {
-  return runAgentWithPrompt<MarketResult>(MARKET_SYSTEM_PROMPT, idea);
+export async function analyzeMarket(idea: string, config?: ApiConfig): Promise<MarketResult> {
+  return runAgentWithPrompt<MarketResult>(MARKET_SYSTEM_PROMPT, idea, config);
 }

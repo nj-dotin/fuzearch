@@ -4,51 +4,52 @@ import React from 'react';
 
 interface ScoreMetricProps {
   label: string;
-  score: number;
+  score?: number;
   verdict: string;
   tooltip?: string;
 }
 
 function ScoreMetric({ label, score, verdict, tooltip }: ScoreMetricProps) {
-  // Determine color coding based on score thresholds
-  const getScoreColorClass = (val: number) => {
-    if (val >= 80) return 'bg-[#10b981]'; // Green (High potential / low risk / low legal concerns)
-    if (val >= 60) return 'bg-[#f97316]'; // Orange (Moderate)
-    return 'bg-[#ef4444]'; // Red (Needs improvement / high risk / high legal concerns)
+  const hasScore = typeof score === 'number' && score > 0;
+  
+  const getScoreColor = (val: number) => {
+    if (val >= 80) return { bar: 'bg-emerald-500', text: 'text-emerald-700' };
+    if (val >= 60) return { bar: 'bg-amber-500', text: 'text-amber-700' };
+    return { bar: 'bg-rose-500', text: 'text-rose-700' };
   };
 
-  const getScoreTextColorClass = (val: number) => {
-    if (val >= 80) return 'text-[#10b981]';
-    if (val >= 60) return 'text-[#f97316]';
-    return 'text-[#ef4444]';
-  };
+  const colors = hasScore ? getScoreColor(score) : { bar: 'bg-stone-200', text: 'text-stone-400' };
 
   return (
-    <div className="bg-white border border-[#e5e5e5] rounded p-4 flex flex-col gap-2 hover:border-[#cbd5e1] transition-all">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-xs uppercase font-bold text-[#8e8e8e] tracking-wider block">
+    <div className="rounded-xl border border-stone-200/80 bg-white p-4 shadow-2xs hover:border-stone-300 transition-all flex flex-col justify-between gap-3">
+      <div>
+        <div className="flex items-start justify-between gap-2">
+          <span className="text-xs font-bold text-stone-900 tracking-tight block">
             {label}
           </span>
-          <span className="text-[10px] text-[#6b7280] block font-normal leading-tight mt-0.5">
-            {tooltip}
+          <span className={`text-sm font-bold font-mono ${colors.text}`}>
+            {hasScore ? `${score}/100` : '—/100'}
           </span>
         </div>
-        <span className={`text-base font-bold font-mono ${getScoreTextColorClass(score)}`}>
-          {score}/100
-        </span>
+        <p className="text-[11px] text-stone-400 font-normal mt-0.5 leading-snug">
+          {tooltip}
+        </p>
       </div>
 
-      {/* Simple Horizontal Bar */}
-      <div className="w-full bg-[#e5e5e5] rounded-full h-2 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-1000 ${getScoreColorClass(score)}`}
-          style={{ width: `${score}%` }}
-        />
-      </div>
-
-      <div className="text-xs text-[#404040] leading-tight font-medium mt-1">
-        <span className="text-[#737373] font-normal">Verdict:</span> {verdict}
+      {/* Progress Track */}
+      <div>
+        <div className="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ${colors.bar}`}
+            style={{ width: `${hasScore ? score : 0}%` }}
+          />
+        </div>
+        <div className="text-[11px] text-stone-600 font-medium mt-1.5 flex items-center justify-between">
+          <span className="text-stone-400 font-normal">Verdict:</span>
+          <span className="truncate max-w-[170px] text-right font-semibold text-stone-800">
+            {verdict}
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -79,48 +80,48 @@ export default function ScoreCard({ scores, verdicts }: ScoreCardProps) {
       key: 'feasibility',
       label: 'Feasibility',
       tooltip: 'Operational complexity & deployment readiness',
-      score: scores.feasibility ?? 0,
+      score: scores.feasibility,
       verdict: verdicts.feasibility ?? 'Not evaluated',
     },
     {
       key: 'market',
       label: 'Market Potential',
-      tooltip: 'Audience demand & competitive posture',
-      score: scores.market ?? 0,
+      tooltip: 'Customer demand & competitive positioning',
+      score: scores.market,
       verdict: verdicts.market ?? 'Not evaluated',
     },
     {
       key: 'technical',
       label: 'Technical Execution',
-      tooltip: 'Infrastructure, complexity & technical feasibility',
-      score: scores.technical ?? 0,
+      tooltip: 'Stack complexity & architectural risks',
+      score: scores.technical,
       verdict: verdicts.technical ?? 'Not evaluated',
     },
     {
       key: 'innovation',
-      label: 'Innovation Potential',
-      tooltip: 'Originality, novelty & product defense',
-      score: scores.innovation ?? 0,
+      label: 'Innovation Degree',
+      tooltip: 'Novelty, moat & unique value differentiation',
+      score: scores.innovation,
       verdict: verdicts.innovation ?? 'Not evaluated',
     },
     {
       key: 'risk',
-      label: 'Risk Profile',
-      tooltip: 'LOWER risk is safer (90 = low risk, 20 = high risk)',
-      score: scores.risk ?? 0,
+      label: 'Risk Safety Profile',
+      tooltip: 'Higher score = Lower risk / Safer execution',
+      score: scores.risk,
       verdict: verdicts.risk ?? 'Not evaluated',
     },
     {
       key: 'legal',
-      label: 'Legal & Ethical',
-      tooltip: 'Fewer concerns is safer (100 = clear, 0 = severe concerns)',
-      score: scores.legal ?? 0,
+      label: 'Regulatory & Ethics',
+      tooltip: 'Compliance, copyright & privacy exposure',
+      score: scores.legal,
       verdict: verdicts.legal ?? 'Not evaluated',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
       {metrics.map((metric) => (
         <ScoreMetric
           key={metric.key}

@@ -1,5 +1,5 @@
 import { runAgentWithPrompt } from '../ai/client';
-import { SuggestionResult } from '../../types/analysis';
+import { SuggestionResult, ApiConfig } from '../../types/analysis';
 
 const SUGGESTION_SYSTEM_PROMPT = `You are the Suggestion Agent, a specialist in refining business models, product engineering, and roadmapping.
 
@@ -13,6 +13,6 @@ Analyze the user's idea and return your recommendations in JSON format matching 
 
 CRITICAL: Return ONLY raw JSON. Do not write markdown blocks or any text outside of the JSON structure. Ensure all keys are double-quoted.`;
 
-export async function analyzeSuggestion(idea: string): Promise<SuggestionResult> {
-  return runAgentWithPrompt<SuggestionResult>(SUGGESTION_SYSTEM_PROMPT, idea);
+export async function analyzeSuggestion(idea: string, config?: ApiConfig): Promise<SuggestionResult> {
+  return runAgentWithPrompt<SuggestionResult>(SUGGESTION_SYSTEM_PROMPT, idea, config);
 }

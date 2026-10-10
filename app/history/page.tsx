@@ -30,21 +30,23 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-white">
       <Navigation />
 
-      <main className="flex-grow mx-auto max-w-6xl w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#e5e5e5] pb-5">
-          <div>
-            <h1 className="text-2xl font-bold text-[#171717] tracking-tight">Analysis History</h1>
-            <p className="text-xs text-[#737373]">
-              Review previously computed business and technical idea evaluations.
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200/80 pb-5">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+              Evaluation History
+            </h1>
+            <p className="text-xs text-stone-500">
+              Review and inspect previously analyzed innovation ideas.
             </p>
           </div>
           <Link
             href="/"
-            className="inline-block rounded-md bg-[#171717] hover:bg-[#262626] text-white text-xs font-semibold py-2 px-4 shadow transition-colors text-center"
+            className="inline-block rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold py-2 px-4 shadow-xs transition-all text-center"
           >
             &larr; Return to Analyzer
           </Link>

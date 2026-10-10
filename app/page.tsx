@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '../components/Navigation';
 import HowItWorks from '../components/HowItWorks';
 import IdeaInput from '../components/IdeaInput';
 import AnalysisProgress, { AgentStatusMap } from '../components/AnalysisProgress';
 import HistoryList from '../components/HistoryList';
-import { AnalysisReport, ProgressEvent, AgentResultsMap, AgentErrorsMap, AgentName } from '../types/analysis';
+import ApiConfigModal from '../components/ApiConfigModal';
+import { AnalysisReport, ProgressEvent, AgentResultsMap, AgentErrorsMap, ApiConfig } from '../types/analysis';
 import { calculateOverallScore, getVerdict, generateExplanation } from '../lib/utils/helpers';
 
 const initialStatuses: AgentStatusMap = {
@@ -27,6 +28,66 @@ export default function HomePage() {
   const [agentStatuses, setAgentStatuses] = useState<AgentStatusMap>(initialStatuses);
   const [agentErrors, setAgentErrors] = useState<Record<string, string>>({});
   const [history, setHistory] = useState<AnalysisReport[]>([]);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+  // Status for secret indicator
+  const [isApiActive, setIsApiActive] = useState<boolean>(false);
+  const [activeProvider, setActiveProvider] = useState<string>('fallback');
+  const lastHeroTapRef = useRef<number>(0);
+
+  // Check API health status
+  const checkStatus = async () => {
+    try {
+      const stored = localStorage.getItem('innovation_analyzer_api_config');
+      if (stored) {
+        const parsed: ApiConfig = JSON.parse(stored);
+        const hasGemini = !!(parsed.geminiApiKey && parsed.geminiApiKey.trim().length > 0);
+        const hasOpenRouter = !!(parsed.openrouterApiKey && parsed.openrouterApiKey.trim().length > 0);
+        const hasSingleKey = !!(parsed.apiKey && parsed.apiKey.trim().length > 0);
+
+        if (hasGemini && hasOpenRouter) {
+          setIsApiActive(true);
+          setActiveProvider('Hybrid Dual-Engine');
+          return;
+        } else if (hasGemini) {
+          setIsApiActive(true);
+          setActiveProvider('Gemini Direct');
+          return;
+        } else if (hasOpenRouter) {
+          setIsApiActive(true);
+          setActiveProvider('OpenRouter');
+          return;
+        } else if (hasSingleKey) {
+          setIsApiActive(true);
+          setActiveProvider(parsed.provider === 'gemini' ? 'Gemini Direct' : parsed.provider === 'openrouter' ? 'OpenRouter' : 'Custom');
+          return;
+        }
+      }
+
+      const res = await fetch('/api/status');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.serverConfigured) {
+          setIsApiActive(true);
+          setActiveProvider(data.provider === 'gemini' ? 'Gemini' : 'OpenRouter');
+          return;
+        }
+      }
+
+      setIsApiActive(false);
+      setActiveProvider('Fallback Demo');
+    } catch {
+      setIsApiActive(false);
+      setActiveProvider('Fallback Demo');
+    }
+  };
+
+  useEffect(() => {
+    checkStatus();
+    const handleUpdate = () => checkStatus();
+    window.addEventListener('ai-config-updated', handleUpdate);
+    return () => window.removeEventListener('ai-config-updated', handleUpdate);
+  }, []);
 
   // Load history from localStorage on mount
   useEffect(() => {
@@ -49,6 +110,14 @@ export default function HomePage() {
     }
   };
 
+  const handleHeroTouchEnd = () => {
+    const now = Date.now();
+    if (now - lastHeroTapRef.current < 350) {
+      setIsConfigOpen(true);
+    }
+    lastHeroTapRef.current = now;
+  };
+
   const handleAnalyzeIdea = async (idea: string) => {
     setIsLoading(true);
     setError('');
@@ -59,11 +128,22 @@ export default function HomePage() {
     const tempErrors: AgentErrorsMap = {};
     const analysisId = `analysis-${Date.now()}`;
 
+    // Read client apiConfig if available
+    let apiConfig: ApiConfig | undefined = undefined;
+    try {
+      const stored = localStorage.getItem('innovation_analyzer_api_config');
+      if (stored) {
+        apiConfig = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Failed to parse api config:', e);
+    }
+
     try {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea }),
+        body: JSON.stringify({ idea, apiConfig }),
       });
 
       if (!response.ok) {
@@ -85,7 +165,7 @@ export default function HomePage() {
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
-        buffer = lines.pop() || ''; // Hold the last potentially partial line
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           const trimmed = line.trim();
@@ -113,16 +193,13 @@ export default function HomePage() {
         }
       }
 
-      // Check if we received at least some successful results
-      const totalAgents = 7;
       const successCount = Object.keys(tempResults).length;
-      const errorCount = Object.keys(tempErrors).length;
 
       if (successCount === 0) {
-        throw new Error('All analysis agents failed to execute. Please verify your OpenRouter API key configurations.');
+        throw new Error('All analysis agents failed to execute. Please verify your API key configurations.');
       }
 
-      // Calculate aggregates
+      // Calculate aggregates mathematically
       const calculatedScore = calculateOverallScore({
         feasibility: tempResults.feasibility?.score,
         market: tempResults.market?.score,
@@ -135,6 +212,8 @@ export default function HomePage() {
       const calculatedVerdict = getVerdict(calculatedScore);
       const programExplanation = generateExplanation(tempResults);
 
+      const isDemoMode = !isApiActive || idea.trim().toLowerCase().includes('food waste');
+
       const newReport: AnalysisReport = {
         id: analysisId,
         idea: idea,
@@ -144,16 +223,14 @@ export default function HomePage() {
         explanation: programExplanation,
         results: tempResults,
         errors: tempErrors,
-        isDemo: idea.trim().toLowerCase().includes('reduce food waste'), // Mark as demo if matching food waste
+        isDemo: isDemoMode,
       };
 
-      // Save to local storage history
       const currentHistory = [...history];
       currentHistory.unshift(newReport);
       localStorage.setItem('innovation_analyzer_history', JSON.stringify(currentHistory));
       setHistory(currentHistory);
 
-      // Route to results
       router.push(`/results/${analysisId}`);
     } catch (err: any) {
       console.error('Analysis error:', err);
@@ -163,38 +240,68 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-white">
       <Navigation />
 
-      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Hero Header */}
-        <div className="text-center space-y-2 py-4">
-          <h1 className="text-3xl font-extrabold text-[#171717] sm:text-4xl tracking-tight">
-            AI Multi-Agent Innovation Analyzer
-          </h1>
-          <p className="max-w-2xl mx-auto text-sm sm:text-base text-[#6b7280]">
-            Submit a concept to trigger 7 specialized parallel AI agents. Get immediate metric scoring, risk analysis, compliance feedback, and actionable product next steps.
+      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+        {/* Editorial Hero Header */}
+        <div className="text-center space-y-3 py-2 sm:py-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-100 text-stone-700 text-xs font-medium border border-stone-200/60 mb-2">
+            <span>Specialized Multi-Agent AI System</span>
+            <span className="text-stone-300">|</span>
+            <span className="flex items-center gap-1 font-mono text-[11px]">
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  isApiActive ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'
+                }`}
+              />
+              {isApiActive ? activeProvider : 'Demo Matrix'}
+            </span>
+          </div>
+
+          {/* Interactive Title with Double-Tap Secret Trigger & Indicator Dot */}
+          <div
+            className="flex items-center justify-center gap-2.5 cursor-pointer group select-none"
+            onDoubleClick={() => setIsConfigOpen(true)}
+            onTouchEnd={handleHeroTouchEnd}
+            title="Double-click to open Secret AI Configuration"
+          >
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight">
+              AI Multi-Agent Innovation Analyzer
+            </h1>
+            {/* Secret Dot Indicator */}
+            <span
+              className={`h-3 w-3 rounded-full transition-all duration-300 ${
+                isApiActive
+                  ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.7)]'
+                  : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse'
+              }`}
+            />
+          </div>
+
+          <p className="max-w-2xl mx-auto text-xs sm:text-sm text-stone-500 leading-relaxed font-normal">
+            Evaluate concepts concurrently across 7 specialized dimensions — operational feasibility, market viability, technical stack, novelty, risk, compliance, and product roadmap.
           </p>
         </div>
 
-        {/* How It Works Diagram */}
+        {/* Visual Multi-Agent Architecture Flow */}
         <HowItWorks />
 
-        {/* General Error Banner */}
+        {/* Error Banner */}
         {error && (
-          <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-            <div className="flex gap-2">
-              <span>❌</span>
+          <div className="rounded-2xl bg-rose-50 border border-rose-200/80 p-4 text-xs sm:text-sm text-rose-800">
+            <div className="flex gap-2.5">
+              <span>⚠️</span>
               <div>
-                <p className="font-semibold">Analysis Failed</p>
-                <p className="mt-1 text-xs text-red-600">{error}</p>
+                <p className="font-bold">Evaluation Interrupted</p>
+                <p className="mt-0.5 text-xs text-rose-700">{error}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Input & Progress Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Input & Live Progress Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-7">
             <IdeaInput onSubmit={handleAnalyzeIdea} isLoading={isLoading} />
           </div>
@@ -202,26 +309,43 @@ export default function HomePage() {
             {isLoading ? (
               <AnalysisProgress statuses={agentStatuses} errors={agentErrors} />
             ) : (
-              <div className="bg-white border border-[#e5e5e5] rounded-lg p-6 shadow-sm text-center space-y-3">
-                <div className="text-3xl">🤖</div>
-                <h3 className="text-sm font-semibold text-[#171717]">Ready for Analysis</h3>
-                <p className="text-xs text-[#6b7280]">
-                  Enter your idea description in the input box and click <strong>Analyze Idea</strong> to begin. The process takes approximately 10-15 seconds.
+              <div className="rounded-2xl border border-stone-200/80 bg-stone-50/40 p-6 sm:p-8 text-center space-y-3">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-stone-200/80 text-stone-700 shadow-2xs">
+                  ⚡
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold text-stone-900 tracking-tight">
+                  Ready for Evaluation
+                </h3>
+                <p className="text-xs text-stone-500 leading-relaxed max-w-xs mx-auto">
+                  Type your concept or pick a quick prompt to trigger all 7 agents in parallel. Total turnaround is approx 8–15 seconds.
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* History Browser Section */}
-        <div className="border-t border-[#e5e5e5] pt-8">
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-[#171717]">Recent Analysis Reports</h2>
-            <p className="text-xs text-[#6b7280]">Browse and review prior innovation scores cached on this browser.</p>
+        {/* Previous Reports Section */}
+        <div className="border-t border-stone-200/80 pt-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-stone-900 tracking-tight">
+                Historical Evaluations
+              </h2>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Locally cached evaluations on this browser session.
+              </p>
+            </div>
           </div>
           <HistoryList reports={history} onClearHistory={handleClearHistory} />
         </div>
       </main>
+
+      {/* Secret AI Configuration Modal */}
+      <ApiConfigModal
+        isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        onConfigSaved={() => checkStatus()}
+      />
     </div>
   );
 }

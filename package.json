@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"next dev\" \"python server.py\"",
+    "dev": "concurrently \"next dev\" \"python3 server.py\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "backend": "python server.py"
+    "backend": "python3 server.py"
   },
   "dependencies": {
     "next": "16.3.1",
